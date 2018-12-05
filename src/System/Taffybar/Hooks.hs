@@ -4,6 +4,7 @@ module System.Taffybar.Hooks
   , refreshBatteriesOnPropChange
   ) where
 
+import           BroadcastChan
 import           Control.Applicative
 import           Control.Concurrent
 import           Control.Monad
@@ -19,12 +20,12 @@ import           System.Taffybar.Information.Network
 import           System.Taffybar.Information.XDG.DesktopEntry
 import           System.Taffybar.Util
 
-newtype NetworkInfoChan = NetworkInfoChan (Chan [(String, (Rational, Rational))])
+newtype NetworkInfoChan = NetworkInfoChan (BroadcastChan In [(String, (Rational, Rational))])
 
 buildInfoChan :: Double -> IO NetworkInfoChan
 buildInfoChan interval = do
-  chan <- newChan
-  _ <- forkIO $ monitorNetworkInterfaces interval $ writeChan chan
+  chan <- newBroadcastChan
+  _ <- forkIO $ monitorNetworkInterfaces interval (void . writeBChan chan)
   return $ NetworkInfoChan chan
 
 getNetworkChan :: TaffyIO NetworkInfoChan

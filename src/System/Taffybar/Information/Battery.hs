@@ -11,6 +11,7 @@ module System.Taffybar.Information.Battery
   , module System.Taffybar.Information.Battery
   ) where
 
+import           BroadcastChan
 import           Control.Concurrent
 import           Control.Monad
 import           Control.Monad.IO.Class
@@ -140,7 +141,7 @@ getBatteryPaths = do
     return $ filter isBattery paths
 
 newtype DisplayBatteryChanVar =
-  DisplayBatteryChanVar (Chan BatteryInfo, MVar BatteryInfo)
+  DisplayBatteryChanVar (BroadcastChan In BatteryInfo, MVar BatteryInfo)
 
 getDisplayBatteryInfo :: TaffyIO BatteryInfo
 getDisplayBatteryInfo = do
@@ -151,13 +152,13 @@ getDisplayBatteryChanVar :: TaffyIO DisplayBatteryChanVar
 getDisplayBatteryChanVar =
   getStateDefault $ DisplayBatteryChanVar <$> monitorDisplayBattery
 
-getDisplayBatteryChan :: TaffyIO (Chan BatteryInfo)
+getDisplayBatteryChan :: TaffyIO (BroadcastChan In BatteryInfo)
 getDisplayBatteryChan = do
   DisplayBatteryChanVar (chan, _) <- getDisplayBatteryChanVar
   return chan
 
 updateBatteryInfo
-  :: Chan BatteryInfo
+  :: BroadcastChan In BatteryInfo
   -> MVar BatteryInfo
   -> ObjectPath
   -> TaffyIO ()
@@ -166,7 +167,7 @@ updateBatteryInfo chan var path =
   where
     doWrites info =
         batteryLogF DEBUG "Writing info %s" info >>
-        swapMVar var info >> writeChan chan info
+        swapMVar var info >> void (writeBChan chan info)
     warnOfFailure = batteryLogF WARNING "Failed to update battery info %s"
 
 registerForAnyUPowerPropertiesChanged
@@ -180,13 +181,13 @@ registerForAnyUPowerPropertiesChanged signalHandler = do
       signalHandler
 
 -- | Monitor the DisplayDevice for changes, writing a new "BatteryInfo" object
--- to returned "MVar" and "Chan" objects
-monitorDisplayBattery :: TaffyIO (Chan BatteryInfo, MVar BatteryInfo)
+-- to returned "MVar" and "BroadcastChan" objects
+monitorDisplayBattery :: TaffyIO (BroadcastChan In BatteryInfo, MVar BatteryInfo)
 monitorDisplayBattery = do
   lift $ batteryLog DEBUG "Starting Battery Monitor"
   client <- asks systemDBusClient
   infoVar <- lift $ newMVar $ infoMapToBatteryInfo M.empty
-  chan <- lift newChan
+  chan <- newBroadcastChan
   taffyFork $ do
     ctx <- ask
     let warnOfFailedGetDevice err =
