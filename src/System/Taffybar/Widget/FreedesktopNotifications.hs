@@ -237,7 +237,7 @@ defaultNotificationConfig =
 notifyAreaNew :: MonadIO m => NotificationConfig -> m Widget
 notifyAreaNew cfg = liftIO $ do
   frame <- frameNew Nothing
-  box <- hBoxNew False 3
+  box <- boxNew OrientationHorizontal 3
   textArea <- labelNew (Nothing :: Maybe Text)
   button <- eventBoxNew
   sep <- separatorNew OrientationHorizontal
@@ -262,7 +262,7 @@ notifyAreaNew cfg = liftIO $ do
   s <- initialNoteState w textArea cfg
   _ <- onWidgetButtonReleaseEvent button (userCancel s)
 
-  realizableWrapper <- hBoxNew False 0
+  realizableWrapper <- boxNew OrientationHorizontal 0
   boxPackStart realizableWrapper frame False False 0
   widgetShow realizableWrapper
 

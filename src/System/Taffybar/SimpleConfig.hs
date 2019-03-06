@@ -29,8 +29,8 @@ import           GI.Gdk
 import           Graphics.UI.GIGtkStrut
 import           System.Taffybar.Information.X11DesktopInfo
 import           System.Taffybar
-import qualified System.Taffybar.Context as BC (BarConfig(..))
-import           System.Taffybar.Context hiding (BarConfig(..))
+import qualified System.Taffybar.Context as BC (BarConfig(..), TaffybarConfig(..))
+import           System.Taffybar.Context hiding (BarConfig(..), cssPath)
 import           System.Taffybar.Util
 
 -- | The side of the monitor at which taffybar should be displayed.
@@ -51,12 +51,15 @@ data SimpleTaffyConfig = SimpleTaffyConfig
   , barPosition :: Position
   -- | The number of pixels between widgets
   , widgetSpacing :: Int
-  -- | Widget constructors whose results are placed at the beginning of the bar
+  -- | Widget constructors whose output are placed at the beginning of the bar
   , startWidgets :: [TaffyIO Gtk.Widget]
-  -- | Widget constructors whose results will be placed in the center of the bar
+  -- | Widget constructors whose output are placed in the center of the bar
   , centerWidgets :: [TaffyIO Gtk.Widget]
-  -- | Widget constructors whose results are placed at the end of the bar
+  -- | Widget constructors whose output are placed at the end of the bar
   , endWidgets :: [TaffyIO Gtk.Widget]
+  -- | Optional path to CSS stylesheet (loaded in addition to stylesheet found
+  -- in XDG data directory).
+  , cssPath :: Maybe FilePath
   }
 
 -- | Sensible defaults for most of the fields of 'SimpleTaffyConfig'. You'll
@@ -72,6 +75,7 @@ defaultSimpleTaffyConfig = SimpleTaffyConfig
   , startWidgets = []
   , centerWidgets = []
   , endWidgets = []
+  , cssPath = Nothing
   }
 
 toStrutConfig :: SimpleTaffyConfig -> Int -> StrutConfig
@@ -108,7 +112,10 @@ toBarConfig config monitor = do
 newtype SimpleBarConfigs = SimpleBarConfigs (MV.MVar [(Int, BC.BarConfig)])
 
 toTaffyConfig :: SimpleTaffyConfig -> TaffybarConfig
-toTaffyConfig conf = defaultTaffybarConfig { getBarConfigsParam = configGetter }
+toTaffyConfig conf =
+    defaultTaffybarConfig { getBarConfigsParam = configGetter
+                          , BC.cssPath = cssPath conf
+                          }
   where
     configGetter = do
       SimpleBarConfigs configsVar <-

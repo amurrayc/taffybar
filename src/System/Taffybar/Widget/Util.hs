@@ -17,7 +17,6 @@ module System.Taffybar.Widget.Util where
 import           Control.Concurrent ( forkIO )
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Maybe
 import           Data.Functor ( ($>) )
 import           Data.Int
 import qualified Data.Text as T
@@ -25,18 +24,10 @@ import qualified GI.GdkPixbuf.Objects.Pixbuf as GI
 import qualified GI.GdkPixbuf.Objects.Pixbuf as PB
 import           GI.Gtk as Gtk
 import qualified GI.Gdk as D
-import           System.Directory
 import           System.FilePath.Posix
 import           System.Taffybar.Information.XDG.DesktopEntry
 import           System.Taffybar.Util
 import           Text.Printf
-import qualified Graphics.Rendering.Cairo as C
-import qualified GI.Cairo
-import           Control.Monad.Trans.Reader (runReaderT)
-import           Graphics.Rendering.Cairo.Internal (Render(runRender))
-import           Foreign.Ptr (castPtr)
-import           Graphics.Rendering.Cairo.Types (Cairo(Cairo))
-
 
 import           Paths_taffybar ( getDataDir )
 
@@ -167,7 +158,3 @@ setMinWidth :: (Gtk.IsWidget w, MonadIO m) => Int -> w -> m w
 setMinWidth width widget = liftIO $ do
   Gtk.widgetSetSizeRequest widget (fromIntegral width) (-1)
   return widget
-
-renderWithContext :: GI.Cairo.Context -> C.Render () -> IO ()
-renderWithContext ct r = GI.Cairo.withManagedPtr ct $ \p ->
-  runReaderT (runRender r) (Cairo (castPtr p))

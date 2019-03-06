@@ -1,7 +1,11 @@
 module System.Taffybar.Hooks
   ( module System.Taffybar.DBus
   , module System.Taffybar.Hooks
+  , ChromeTabImageData(..)
   , refreshBatteriesOnPropChange
+  , getX11WindowToChromeTabId
+  , getChromeTabImageDataChannel
+  , getChromeTabImageDataTable
   ) where
 
 import           BroadcastChan
@@ -16,6 +20,7 @@ import           System.FilePath
 import           System.Taffybar.Context
 import           System.Taffybar.DBus
 import           System.Taffybar.Information.Battery
+import           System.Taffybar.Information.Chrome
 import           System.Taffybar.Information.Network
 import           System.Taffybar.Information.XDG.DesktopEntry
 import           System.Taffybar.Util

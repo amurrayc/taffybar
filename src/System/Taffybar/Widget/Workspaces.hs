@@ -23,7 +23,6 @@ import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.Reader
 import           Control.RateLimit
-import qualified Data.Char as Char
 import qualified Data.Foldable as F
 import           Data.Int
 import           Data.List (intersect, sortBy)
@@ -89,7 +88,7 @@ data Workspace = Workspace
 data WorkspacesContext = WorkspacesContext
   { controllersVar :: MV.MVar (M.Map WorkspaceIdx WWC)
   , workspacesVar :: MV.MVar (M.Map WorkspaceIdx Workspace)
-  , workspacesWidget :: Gtk.HBox
+  , workspacesWidget :: Gtk.Box
   , workspacesConfig :: WorkspacesConfig
   , taffyContext :: Context
   }
@@ -286,7 +285,7 @@ addWidget controller = do
      -- XXX: This hbox exists to (hopefully) prevent the issue where workspace
      -- widgets appear out of order, in the switcher, by acting as an empty
      -- place holder when the actual widget is hidden.
-    hbox <- Gtk.hBoxNew False 0
+    hbox <- Gtk.boxNew Gtk.OrientationHorizontal 0
     parent <- Gtk.widgetGetParent workspaceWidget
     if isJust parent
       then Gtk.widgetReparent workspaceWidget hbox
@@ -295,7 +294,7 @@ addWidget controller = do
 
 workspacesNew :: WorkspacesConfig -> TaffyIO Gtk.Widget
 workspacesNew cfg = ask >>= \tContext -> lift $ do
-  cont <- Gtk.hBoxNew False $ fromIntegral (widgetGap cfg)
+  cont <- Gtk.boxNew Gtk.OrientationHorizontal $ fromIntegral (widgetGap cfg)
   controllersRef <- MV.newMVar M.empty
   workspacesRef <- MV.newMVar M.empty
   let context =
@@ -465,7 +464,7 @@ buildContentsController constructors ws = do
   controllers <- mapM ($ ws) constructors
   ctx <- ask
   tempController <- lift $ do
-    cons <- Gtk.hBoxNew False 0
+    cons <- Gtk.boxNew Gtk.OrientationHorizontal 0
     mapM_ (flip runReaderT ctx . getWidget >=> Gtk.containerAdd cons) controllers
     outerBox <- Gtk.toWidget cons >>= buildPadBox
     _ <- widgetSetClassGI cons "contents"
@@ -571,7 +570,7 @@ buildIconWidget transparentOnNone ws = do
       }
 
 data IconController = IconController
-  { iconsContainer :: Gtk.HBox
+  { iconsContainer :: Gtk.Box
   , iconImages :: [IconWidget]
   , iconWorkspace :: Workspace
   }
@@ -580,7 +579,7 @@ buildIconController :: ControllerConstructor
 buildIconController ws = do
   tempController <-
     lift $ do
-      hbox <- Gtk.hBoxNew False 0
+      hbox <- Gtk.boxNew Gtk.OrientationHorizontal 0
       return
         IconController
         {iconsContainer = hbox, iconImages = [], iconWorkspace = ws}
@@ -628,6 +627,10 @@ getWindowIconPixbufFromClass size windowData =
 getWindowIconPixbufFromDesktopEntry :: WindowIconPixbufGetter
 getWindowIconPixbufFromDesktopEntry size windowData =
   getWindowIconFromDesktopEntryByClasses size (windowClass windowData)
+
+getWindowIconPixbufFromChrome :: WindowIconPixbufGetter
+getWindowIconPixbufFromChrome _ windowData =
+  getPixBufFromChromeData $ windowId windowData
 
 defaultGetWindowIconPixbuf :: WindowIconPixbufGetter
 defaultGetWindowIconPixbuf =

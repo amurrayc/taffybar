@@ -84,6 +84,7 @@ data TaffybarConfig = TaffybarConfig
   { dbusClientParam :: Maybe DBus.Client
   , startupHook :: TaffyIO ()
   , getBarConfigsParam :: BarConfigGetter
+  , cssPath :: Maybe FilePath
   , errorMsg :: Maybe String
   }
 
@@ -96,6 +97,7 @@ defaultTaffybarConfig = TaffybarConfig
   { dbusClientParam = Nothing
   , startupHook = return ()
   , getBarConfigsParam = return []
+  , cssPath = Nothing
   , errorMsg = Nothing
   }
 
@@ -165,9 +167,9 @@ buildBarWindow context barConfig = do
       show $ strutConfig barConfig
 
   window <- Gtk.windowNew Gtk.WindowTypeToplevel
-  box <- Gtk.hBoxNew False $ fromIntegral $ widgetSpacing barConfig
+  box <- Gtk.boxNew Gtk.OrientationHorizontal $ fromIntegral $ widgetSpacing barConfig
   _ <- widgetSetClassGI box "taffy-box"
-  centerBox <- Gtk.hBoxNew False $ fromIntegral $ widgetSpacing barConfig
+  centerBox <- Gtk.boxNew Gtk.OrientationHorizontal $ fromIntegral $ widgetSpacing barConfig
   Gtk.boxSetCenterWidget box (Just centerBox)
 
   setupStrutWindow (strutConfig barConfig) window
@@ -216,7 +218,8 @@ refreshTaffyWindows = liftReader postGUIASync $ do
               newConfs = filter (`notElem` currentConfigs) barConfigs
               (remainingWindows, removedWindows) =
                 partition ((`elem` barConfigs) . sel1) currentWindows
-              setPropertiesFromPair (barConf, window) = setupStrutWindow (strutConfig barConf) window
+              setPropertiesFromPair (barConf, window) =
+                setupStrutWindow (strutConfig barConf) window
 
           newWindowPairs <- lift $ do
             logIO DEBUG $ printf "removedWindows: %s" $
@@ -320,8 +323,8 @@ subscribeToAll listener = do
   identifier <- lift newUnique
   listenersVar <- asks listeners
   let
-    -- This type annotation probably has something to do with the warnings that
-    -- occur without MonoLocalBinds, but it still seems to be necessary
+    -- XXX: This type annotation probably has something to do with the warnings
+    -- that occur without MonoLocalBinds, but it still seems to be necessary
     addListener :: SubscriptionList -> SubscriptionList
     addListener = ((identifier, listener):)
   lift $ MV.modifyMVar_ listenersVar (return . addListener)

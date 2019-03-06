@@ -1,5 +1,5 @@
 name: taffybar
-version: 3.0.0
+version: 3.1.2
 synopsis: A desktop bar similar to xmobar, but with more GUI
 license: BSD3
 license-file: LICENSE
@@ -41,12 +41,11 @@ library
   build-depends: base > 3 && < 5
                , ConfigFile
                , HStringTemplate >= 0.8 && < 0.9
-               , HTTP
                , X11 >= 1.5.0.1
                , broadcast-chan >= 0.2.0
-               , cairo
+               , bytestring
                , containers
-               , dbus >= 1.0.0 && < 2.0.0
+               , dbus >= 1.2.1 && < 2.0.0
                , dbus-hslogger >= 0.1.0.1 && < 0.2.0.0
                , directory
                , dyre >= 0.8.6 && < 0.9
@@ -54,19 +53,23 @@ library
                , enclosed-exceptions >= 1.0.0.1
                , filepath
                , gi-cairo
+               , gi-cairo-render
+               , gi-cairo-connector
                , gi-gdk
-               , gi-gdkpixbuf >= 2.0.16
+               , gi-gdkpixbuf >= 2.0.18
                , gi-gdkx11
                , gi-glib >= 2.0.17
                , gi-gtk
                , gi-gtk-hs
                , gi-pango
-               , glib
                , gtk-sni-tray >= 0.1.5.0
                , gtk-strut >= 0.1.2.1
                , haskell-gi >= 0.21.2
                , haskell-gi-base >= 0.21.1
                , hslogger
+               , http-client >= 0.5
+               , http-client-tls
+               , http-types
                , multimap >= 1.2.1
                , old-locale
                , parsec >= 3.1
@@ -74,8 +77,9 @@ library
                , rate-limit >= 1.1.1
                , regex-compat
                , safe >= 0.3 && < 1
+               , scotty >= 0.11.0 && < 0.12.0
                , split >= 0.1.4.2
-               , status-notifier-item >= 0.3.0.0
+               , status-notifier-item >= 0.3.0.1
                , stm
                , template-haskell
                , text
@@ -107,6 +111,7 @@ library
                  , System.Taffybar.Information.Battery
                  , System.Taffybar.Information.CPU
                  , System.Taffybar.Information.CPU2
+                 , System.Taffybar.Information.Chrome
                  , System.Taffybar.Information.DiskIO
                  , System.Taffybar.Information.EWMHDesktopInfo
                  , System.Taffybar.Information.MPRIS2
